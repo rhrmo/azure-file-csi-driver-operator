@@ -1,8 +1,8 @@
 approvers:
+- bertinatto
 - jsafrane
 - tsmetana
 - gnufied
-- bertinatto
 - dobsonj
 component: "Storage"
 subcomponent: "Operators"
