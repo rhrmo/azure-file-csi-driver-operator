@@ -77,6 +77,8 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 			"node_sa.yaml",
 			"csidriver.yaml",
 			"service.yaml",
+			"rbac/csi_driver_role.yaml",
+			"rbac/csi_driver_binding.yaml",
 			"rbac/attacher_role.yaml",
 			"rbac/attacher_binding.yaml",
 			"rbac/privileged_role.yaml",
