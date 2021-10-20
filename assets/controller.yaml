@@ -84,7 +84,7 @@ spec:
           ports:
             - name: healthz
               # Due to hostNetwork, this port is open on a node!
-              containerPort: 10301
+              containerPort: 10311
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -119,7 +119,7 @@ spec:
           image: ${KUBE_RBAC_PROXY_IMAGE}
           imagePullPolicy: IfNotPresent
           ports:
-          - containerPort: 9201
+          - containerPort: 9211
             name: driver-m
             protocol: TCP
           resources:
@@ -164,7 +164,7 @@ spec:
           image: ${KUBE_RBAC_PROXY_IMAGE}
           imagePullPolicy: IfNotPresent
           ports:
-          - containerPort: 9202
+          - containerPort: 9212
             name: provisioner-m
             protocol: TCP
           resources:
@@ -206,7 +206,7 @@ spec:
           image: ${KUBE_RBAC_PROXY_IMAGE}
           imagePullPolicy: IfNotPresent
           ports:
-          - containerPort: 9203
+          - containerPort: 9213
             name: attacher-m
             protocol: TCP
           resources:
@@ -248,7 +248,7 @@ spec:
           image: ${KUBE_RBAC_PROXY_IMAGE}
           imagePullPolicy: IfNotPresent
           ports:
-          - containerPort: 9204
+          - containerPort: 9214
             name: resizer-m
             protocol: TCP
           resources:
@@ -289,7 +289,7 @@ spec:
           image: ${KUBE_RBAC_PROXY_IMAGE}
           imagePullPolicy: IfNotPresent
           ports:
-          - containerPort: 9205
+          - containerPort: 9215
             name: snapshotter-m
             protocol: TCP
           resources:
