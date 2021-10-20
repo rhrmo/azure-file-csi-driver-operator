@@ -93,8 +93,9 @@ spec:
               name: scsi-host-dir
           ports:
             - name: healthz
-              # Due to hostNetwork, this port is open on all nodes!
-              containerPort: 10301
+              # Due to hostNetwork, this port is open on a node and cannot
+              # conflict with any port used by other CSI drivers.
+              containerPort: 10302
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -141,7 +142,7 @@ spec:
           args:
             - --csi-address=/csi/csi.sock
             - --probe-timeout=3s
-            - --health-port=10301
+            - --health-port=10302
           volumeMounts:
             - name: socket-dir
               mountPath: /csi

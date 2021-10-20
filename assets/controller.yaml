@@ -83,8 +83,9 @@ spec:
               value: unix:///var/lib/csi/sockets/pluginproxy/csi.sock
           ports:
             - name: healthz
-              # Due to hostNetwork, this port is open on a node!
-              containerPort: 10311
+              # Due to hostNetwork, this port is open on a node and cannot
+              # conflict with any port used by other CSI drivers.
+              containerPort: 10303
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -119,6 +120,8 @@ spec:
           image: ${KUBE_RBAC_PROXY_IMAGE}
           imagePullPolicy: IfNotPresent
           ports:
+          # Due to hostNetwork, this port is open on a node and cannot
+          # conflict with any port used by other CSI drivers.
           - containerPort: 9211
             name: driver-m
             protocol: TCP
@@ -164,6 +167,8 @@ spec:
           image: ${KUBE_RBAC_PROXY_IMAGE}
           imagePullPolicy: IfNotPresent
           ports:
+          # Due to hostNetwork, this port is open on a node and cannot
+          # conflict with any port used by other CSI drivers.
           - containerPort: 9212
             name: provisioner-m
             protocol: TCP
@@ -206,6 +211,8 @@ spec:
           image: ${KUBE_RBAC_PROXY_IMAGE}
           imagePullPolicy: IfNotPresent
           ports:
+          # Due to hostNetwork, this port is open on a node and cannot
+          # conflict with any port used by other CSI drivers.
           - containerPort: 9213
             name: attacher-m
             protocol: TCP
@@ -248,6 +255,8 @@ spec:
           image: ${KUBE_RBAC_PROXY_IMAGE}
           imagePullPolicy: IfNotPresent
           ports:
+          # Due to hostNetwork, this port is open on a node and cannot
+          # conflict with any port used by other CSI drivers.
           - containerPort: 9214
             name: resizer-m
             protocol: TCP
@@ -289,6 +298,8 @@ spec:
           image: ${KUBE_RBAC_PROXY_IMAGE}
           imagePullPolicy: IfNotPresent
           ports:
+          # Due to hostNetwork, this port is open on a node and cannot
+          # conflict with any port used by other CSI drivers.
           - containerPort: 9215
             name: snapshotter-m
             protocol: TCP
@@ -305,7 +316,7 @@ spec:
           args:
             - --csi-address=$(ADDRESS)
             - --probe-timeout=3s
-            - --health-port=10301
+            - --health-port=10303
           env:
             - name: ADDRESS
               value: /var/lib/csi/sockets/pluginproxy/csi.sock
