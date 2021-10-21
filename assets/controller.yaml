@@ -72,7 +72,7 @@ spec:
           args:
             - --endpoint=$(CSI_ENDPOINT)
             - --logtostderr
-            - --metrics-address=localhost:8201
+            - --metrics-address=localhost:8211
             - --v=${LOG_LEVEL}
             # TODO: make sure this is needed. Taken from upstream
             - --user-agent-suffix=OSS-kubectl
@@ -112,8 +112,8 @@ spec:
           # Provides https proxy for http-based driver metrics.
         - name: driver-kube-rbac-proxy
           args:
-          - --secure-listen-address=0.0.0.0:9201
-          - --upstream=http://127.0.0.1:8201/
+          - --secure-listen-address=0.0.0.0:9211
+          - --upstream=http://127.0.0.1:8211/
           - --tls-cert-file=/etc/tls/private/tls.crt
           - --tls-private-key-file=/etc/tls/private/tls.key
           - --logtostderr=true
@@ -137,7 +137,7 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - --csi-address=$(ADDRESS)
-            - --http-endpoint=localhost:8202
+            - --http-endpoint=localhost:8212
             - --timeout=300s
             - --extra-create-metadata=true
             - --leader-election
@@ -159,8 +159,8 @@ spec:
           # Provides https proxy for http-based external-provisioner metrics.
         - name: provisioner-kube-rbac-proxy
           args:
-          - --secure-listen-address=0.0.0.0:9202
-          - --upstream=http://127.0.0.1:8202/
+          - --secure-listen-address=0.0.0.0:9212
+          - --upstream=http://127.0.0.1:8212/
           - --tls-cert-file=/etc/tls/private/tls.crt
           - --tls-private-key-file=/etc/tls/private/tls.key
           - --logtostderr=true
@@ -184,7 +184,7 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - --csi-address=$(ADDRESS)
-            - --http-endpoint=localhost:8203
+            - --http-endpoint=localhost:8213
             - --timeout=120s
             - --leader-election
             - --leader-election-lease-duration=${LEADER_ELECTION_LEASE_DURATION}
@@ -203,8 +203,8 @@ spec:
               cpu: 10m
         - name: attacher-kube-rbac-proxy
           args:
-          - --secure-listen-address=0.0.0.0:9203
-          - --upstream=http://127.0.0.1:8203/
+          - --secure-listen-address=0.0.0.0:9213
+          - --upstream=http://127.0.0.1:8213/
           - --tls-cert-file=/etc/tls/private/tls.crt
           - --tls-private-key-file=/etc/tls/private/tls.key
           - --logtostderr=true
@@ -228,7 +228,7 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - --csi-address=$(ADDRESS)
-            - --http-endpoint=localhost:8204
+            - --http-endpoint=localhost:8214
             - --leader-election
             - --leader-election-lease-duration=${LEADER_ELECTION_LEASE_DURATION}
             - --leader-election-renew-deadline=${LEADER_ELECTION_RENEW_DEADLINE}
@@ -247,8 +247,8 @@ spec:
               cpu: 10m
         - name: resizer-kube-rbac-proxy
           args:
-          - --secure-listen-address=0.0.0.0:9204
-          - --upstream=http://127.0.0.1:8204/
+          - --secure-listen-address=0.0.0.0:9214
+          - --upstream=http://127.0.0.1:8214/
           - --tls-cert-file=/etc/tls/private/tls.crt
           - --tls-private-key-file=/etc/tls/private/tls.key
           - --logtostderr=true
@@ -272,7 +272,7 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - --csi-address=$(ADDRESS)
-            - --metrics-address=localhost:8205
+            - --metrics-address=localhost:8215
             - --leader-election
             - --leader-election-lease-duration=${LEADER_ELECTION_LEASE_DURATION}
             - --leader-election-renew-deadline=${LEADER_ELECTION_RENEW_DEADLINE}
@@ -290,8 +290,8 @@ spec:
               cpu: 10m
         - name: snapshotter-kube-rbac-proxy
           args:
-          - --secure-listen-address=0.0.0.0:9205
-          - --upstream=http://127.0.0.1:8205/
+          - --secure-listen-address=0.0.0.0:9215
+          - --upstream=http://127.0.0.1:8215/
           - --tls-cert-file=/etc/tls/private/tls.crt
           - --tls-private-key-file=/etc/tls/private/tls.key
           - --logtostderr=true
