@@ -1,7 +1,7 @@
 # Test manifest for https://github.com/kubernetes/kubernetes/tree/master/test/e2e/storage/external
-ShortName: azurefile
+ShortName: azurefile-nfs
 StorageClass:
-  FromExistingClassName: azurefile-csi
+  FromName: true
 SnapshotClass:
   FromName: true
 DriverInfo:
@@ -11,11 +11,9 @@ DriverInfo:
     exec: true
     multipods: true
     RWX: true
-    # TODO: Re-enable fsGroup tests: https://bugzilla.redhat.com/show_bug.cgi?id=2019128
     fsGroup: false
     topology: false
     controllerExpansion: true
     nodeExpansion: true
     volumeLimits: false
-    # TODO: Re-enable snapshot tests: https://bugzilla.redhat.com/show_bug.cgi?id=2019128
-    snapshotDataSource: false
+    snapshotDataSource: true
