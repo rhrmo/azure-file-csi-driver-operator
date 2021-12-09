@@ -317,6 +317,7 @@ spec:
             - --csi-address=$(ADDRESS)
             - --probe-timeout=3s
             - --health-port=10303
+            - --v=${LOG_LEVEL}
           env:
             - name: ADDRESS
               value: /var/lib/csi/sockets/pluginproxy/csi.sock
