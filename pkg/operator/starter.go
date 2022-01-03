@@ -72,6 +72,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		[]string{
 			"volumesnapshotclass.yaml",
 			"storageclass.yaml",
+			"storageclass_nfs.yaml",
 			"controller_sa.yaml",
 			"controller_pdb.yaml",
 			"node_sa.yaml",
