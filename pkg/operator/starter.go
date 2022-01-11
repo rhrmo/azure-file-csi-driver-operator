@@ -32,6 +32,7 @@ const (
 	openShiftConfigNamespace = "openshift-config"
 	secretName               = "azure-file-credentials"
 	ccmOperatorImageEnvName  = "CLUSTER_CLOUD_CONTROLLER_MANAGER_OPERATOR_IMAGE"
+	trustedCAConfigMap       = "azure-file-csi-driver-trusted-ca-bundle"
 )
 
 func RunOperator(ctx context.Context, controllerConfig *controllercmd.ControllerContext) error {
@@ -40,6 +41,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 	kubeInformersForNamespaces := v1helpers.NewKubeInformersForNamespaces(kubeClient, defaultNamespace, "", openShiftConfigNamespace)
 	nodeInformer := kubeInformersForNamespaces.InformersFor("").Core().V1().Nodes()
 	secretInformer := kubeInformersForNamespaces.InformersFor(defaultNamespace).Core().V1().Secrets()
+	configMapInformer := kubeInformersForNamespaces.InformersFor(defaultNamespace).Core().V1().ConfigMaps()
 
 	// Create config clientset and informer. This is used to get the cluster ID
 	configClient := configclient.NewForConfigOrDie(rest.AddUserAgent(controllerConfig.KubeConfig, operatorName))
@@ -78,6 +80,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 			"node_sa.yaml",
 			"csidriver.yaml",
 			"service.yaml",
+			"cabundle_cm.yaml",
 			"rbac/csi_driver_role.yaml",
 			"rbac/csi_driver_binding.yaml",
 			"rbac/attacher_role.yaml",
@@ -109,8 +112,14 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		[]factory.Informer{
 			nodeInformer.Informer(),
 			secretInformer.Informer(),
+			configMapInformer.Informer(),
 		},
 		csidrivercontrollerservicecontroller.WithObservedProxyDeploymentHook(),
+		csidrivercontrollerservicecontroller.WithCABundleDeploymentHook(
+			defaultNamespace,
+			trustedCAConfigMap,
+			configMapInformer,
+		),
 		csidrivercontrollerservicecontroller.WithReplicasHook(nodeInformer.Lister()),
 		csidrivercontrollerservicecontroller.WithSecretHashAnnotationHook(defaultNamespace, secretName, secretInformer),
 	).WithCSIDriverNodeService(
@@ -121,8 +130,14 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		kubeInformersForNamespaces.InformersFor(defaultNamespace),
 		[]factory.Informer{
 			secretInformer.Informer(),
+			configMapInformer.Informer(),
 		},
 		csidrivernodeservicecontroller.WithObservedProxyDaemonSetHook(),
+		csidrivernodeservicecontroller.WithCABundleDaemonSetHook(
+			defaultNamespace,
+			trustedCAConfigMap,
+			configMapInformer,
+		),
 		csidrivernodeservicecontroller.WithSecretHashAnnotationHook(defaultNamespace, secretName, secretInformer),
 	).WithServiceMonitorController(
 		"AzureFileServiceMonitorController",
