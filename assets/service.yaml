@@ -25,10 +25,6 @@ spec:
     port: 445
     protocol: TCP
     targetPort: resizer-m
-  - name: snapshotter-m
-    port: 446
-    protocol: TCP
-    targetPort: snapshotter-m
   selector:
     app: azure-file-csi-driver-controller
   sessionAffinity: None
