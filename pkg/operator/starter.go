@@ -72,7 +72,6 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		kubeInformersForNamespaces,
 		assets.ReadFile,
 		[]string{
-			"volumesnapshotclass.yaml",
 			"storageclass.yaml",
 			"storageclass_nfs.yaml",
 			"controller_sa.yaml",
@@ -92,8 +91,6 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 			"rbac/provisioner_binding.yaml",
 			"rbac/resizer_role.yaml",
 			"rbac/resizer_binding.yaml",
-			"rbac/snapshotter_role.yaml",
-			"rbac/snapshotter_binding.yaml",
 			"rbac/kube_rbac_proxy_role.yaml",
 			"rbac/kube_rbac_proxy_binding.yaml",
 			"rbac/prometheus_role.yaml",
