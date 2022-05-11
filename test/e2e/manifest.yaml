@@ -11,11 +11,11 @@ DriverInfo:
     exec: true
     multipods: true
     RWX: true
-    # TODO: Re-enable fsGroup tests: https://bugzilla.redhat.com/show_bug.cgi?id=2019128
-    fsGroup: false
+    fsGroup: true
+    volumeMountGroup: true
     topology: false
     controllerExpansion: true
     nodeExpansion: true
     volumeLimits: false
-    # TODO: Re-enable snapshot tests: https://bugzilla.redhat.com/show_bug.cgi?id=2019128
+    # Snapshots are not supported in this release
     snapshotDataSource: false
