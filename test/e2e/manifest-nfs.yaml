@@ -11,7 +11,8 @@ DriverInfo:
     exec: true
     multipods: true
     RWX: true
-    fsGroup: false
+    fsGroup: true
+    volumeMountGroup: true
     topology: false
     controllerExpansion: true
     nodeExpansion: true
