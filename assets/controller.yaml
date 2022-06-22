@@ -75,6 +75,9 @@ spec:
             - --logtostderr
             - --metrics-address=localhost:8211
             - --v=${LOG_LEVEL}
+            # Use credentials provided by the azure-inject-credentials container
+            - --cloud-config-secret-name=""
+            - --cloud-config-secret-namespace=""
             # TODO: make sure this is needed. Taken from upstream
             - --user-agent-suffix=OSS-kubectl
           env:
