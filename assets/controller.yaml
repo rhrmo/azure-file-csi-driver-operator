@@ -71,6 +71,7 @@ spec:
           image: ${DRIVER_IMAGE}
           imagePullPolicy: IfNotPresent
           args:
+            - --enable-vhd=false
             - --endpoint=$(CSI_ENDPOINT)
             - --logtostderr
             - --metrics-address=localhost:8211
