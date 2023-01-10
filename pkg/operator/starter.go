@@ -16,6 +16,8 @@ import (
 	"github.com/openshift/azure-file-csi-driver-operator/assets"
 	configclient "github.com/openshift/client-go/config/clientset/versioned"
 	configinformers "github.com/openshift/client-go/config/informers/externalversions"
+	opclient "github.com/openshift/client-go/operator/clientset/versioned"
+	opinformers "github.com/openshift/client-go/operator/informers/externalversions"
 	"github.com/openshift/library-go/pkg/controller/controllercmd"
 	"github.com/openshift/library-go/pkg/controller/factory"
 	"github.com/openshift/library-go/pkg/operator/csi/csicontrollerset"
@@ -33,6 +35,7 @@ const (
 	secretName               = "azure-file-credentials"
 	ccmOperatorImageEnvName  = "CLUSTER_CLOUD_CONTROLLER_MANAGER_OPERATOR_IMAGE"
 	trustedCAConfigMap       = "azure-file-csi-driver-trusted-ca-bundle"
+	resync                   = 20 * time.Minute
 )
 
 func RunOperator(ctx context.Context, controllerConfig *controllercmd.ControllerContext) error {
@@ -45,7 +48,11 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 
 	// Create config clientset and informer. This is used to get the cluster ID
 	configClient := configclient.NewForConfigOrDie(rest.AddUserAgent(controllerConfig.KubeConfig, operatorName))
-	configInformers := configinformers.NewSharedInformerFactory(configClient, 20*time.Minute)
+	configInformers := configinformers.NewSharedInformerFactory(configClient, resync)
+
+	// operator.openshift.io client, used for ClusterCSIDriver
+	operatorClientSet := opclient.NewForConfigOrDie(rest.AddUserAgent(controllerConfig.KubeConfig, operatorName))
+	operatorInformers := opinformers.NewSharedInformerFactory(operatorClientSet, resync)
 
 	// Create GenericOperatorclient. This is used by the library-go controllers created down below
 	gvr := opv1.SchemeGroupVersion.WithResource("clustercsidrivers")
@@ -72,7 +79,6 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		kubeInformersForNamespaces,
 		assets.ReadFile,
 		[]string{
-			"storageclass.yaml",
 			"controller_sa.yaml",
 			"controller_pdb.yaml",
 			"node_sa.yaml",
@@ -140,12 +146,22 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		dynamicClient,
 		assets.ReadFile,
 		"servicemonitor.yaml",
+	).WithStorageClassController(
+		"AzureFileStorageClassController",
+		assets.ReadFile,
+		[]string{
+			"storageclass.yaml",
+		},
+		kubeClient,
+		kubeInformersForNamespaces.InformersFor(""),
+		operatorInformers,
 	)
 
 	klog.Info("Starting the informers")
 	go kubeInformersForNamespaces.Start(ctx.Done())
 	go dynamicInformers.Start(ctx.Done())
 	go configInformers.Start(ctx.Done())
+	go operatorInformers.Start(ctx.Done())
 
 	klog.Info("Starting controllerset")
 	go csiControllerSet.Run(ctx, 1)
