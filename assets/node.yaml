@@ -18,6 +18,8 @@ spec:
     metadata:
       labels:
         app: azure-file-csi-driver-node
+      annotations:
+        target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
     spec:
       hostNetwork: true
       serviceAccount: azure-file-csi-driver-node-sa
