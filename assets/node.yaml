@@ -50,6 +50,7 @@ spec:
                 secretKeyRef:
                   name: azure-file-credentials
                   key: azure_client_secret
+                  optional: true
           volumeMounts:
             - name: host-cloud-config
               mountPath: /etc/cloud-config
