@@ -65,6 +65,18 @@ spec:
                   name: azure-file-credentials
                   key: azure_client_secret
                   optional: true
+            - name: AZURE_TENANT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: azure-disk-credentials
+                  key: azure_tenant_id
+                  optional: true
+            - name: AZURE_FEDERATED_TOKEN_FILE
+              valueFrom:
+                secretKeyRef:
+                  name: azure-disk-credentials
+                  key: azure_federated_token_file
+                  optional: true
           volumeMounts:
             - name: host-cloud-config
               mountPath: /etc/cloud-config
