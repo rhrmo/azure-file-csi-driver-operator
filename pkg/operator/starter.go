@@ -66,6 +66,9 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		return err
 	}
 
+	deploymentAsset := &assetWithReplacement{}
+	deploymentAsset.Replace("${CLUSTER_CLOUD_CONTROLLER_MANAGER_OPERATOR_IMAGE}", os.Getenv(ccmOperatorImageEnvName))
+
 	csiControllerSet := csicontrollerset.NewCSIControllerSet(
 		operatorClient,
 		controllerConfig.EventRecorder,
@@ -106,7 +109,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		configInformers,
 	).WithCSIDriverControllerService(
 		"AzureFileDriverControllerServiceController",
-		assetWithImageReplaced(),
+		deploymentAsset.GetAssetFunc(),
 		"controller.yaml",
 		kubeClient,
 		kubeInformersForNamespaces.InformersFor(defaultNamespace),
@@ -126,7 +129,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		csidrivercontrollerservicecontroller.WithSecretHashAnnotationHook(defaultNamespace, secretName, secretInformer),
 	).WithCSIDriverNodeService(
 		"AzureFileDriverNodeServiceController",
-		assetWithImageReplaced(),
+		deploymentAsset.GetAssetFunc(),
 		"node.yaml",
 		kubeClient,
 		kubeInformersForNamespaces.InformersFor(defaultNamespace),
@@ -171,14 +174,22 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 	return fmt.Errorf("stopped")
 }
 
-func assetWithImageReplaced() func(name string) ([]byte, error) {
+type assetWithReplacement []string
+
+func (r *assetWithReplacement) Replace(old, new string) {
+	*r = append(*r, old, new)
+}
+
+func (r *assetWithReplacement) GetAssetFunc() func(name string) ([]byte, error) {
 	return func(name string) ([]byte, error) {
 		assetBytes, err := assets.ReadFile(name)
 		if err != nil {
 			return assetBytes, err
 		}
-		asset := string(assetBytes)
-		asset = strings.ReplaceAll(asset, "${CLUSTER_CLOUD_CONTROLLER_MANAGER_OPERATOR_IMAGE}", os.Getenv(ccmOperatorImageEnvName))
+
+		replacer := strings.NewReplacer(*r...)
+		asset := replacer.Replace(string(assetBytes))
+
 		return []byte(asset), nil
 	}
 }
