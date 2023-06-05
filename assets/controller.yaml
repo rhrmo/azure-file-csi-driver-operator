@@ -53,6 +53,7 @@ spec:
             - --output-file-path=/etc/merged-cloud-config/cloud.conf
             # Force disable node's managed identity, azure-disk-credentials Secret should be used.
             - --disable-identity-extension-auth
+            - --enable-azure-workload-identity=${ENABLE_AZURE_WORKLOAD_IDENTITY}
           env:
             - name: AZURE_CLIENT_ID
               valueFrom:
