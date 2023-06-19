@@ -10,7 +10,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	opv1 "github.com/openshift/api/operator/v1"
 	"github.com/openshift/azure-file-csi-driver-operator/assets"
