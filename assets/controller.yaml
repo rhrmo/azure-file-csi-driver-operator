@@ -53,7 +53,6 @@ spec:
             - --output-file-path=/etc/merged-cloud-config/cloud.conf
             # Force disable node's managed identity, azure-disk-credentials Secret should be used.
             - --disable-identity-extension-auth
-            - --enable-azure-workload-identity=${ENABLE_AZURE_WORKLOAD_IDENTITY}
           env:
             - name: AZURE_CLIENT_ID
               valueFrom:
@@ -65,19 +64,6 @@ spec:
                 secretKeyRef:
                   name: azure-file-credentials
                   key: azure_client_secret
-                  optional: true
-            - name: AZURE_TENANT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: azure-disk-credentials
-                  key: azure_tenant_id
-                  optional: true
-            - name: AZURE_FEDERATED_TOKEN_FILE
-              valueFrom:
-                secretKeyRef:
-                  name: azure-disk-credentials
-                  key: azure_federated_token_file
-                  optional: true
           volumeMounts:
             - name: host-cloud-config
               mountPath: /etc/cloud-config
