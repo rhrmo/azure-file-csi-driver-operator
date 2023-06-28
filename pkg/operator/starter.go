@@ -3,11 +3,13 @@ package operator
 import (
 	"context"
 	"fmt"
-	configv1 "github.com/openshift/api/config/v1"
 	"os"
 	"strings"
 	"time"
 
+	configv1 "github.com/openshift/api/config/v1"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/dynamic"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -36,6 +38,7 @@ const (
 	operandName                    = "azure-file-csi-driver"
 	openShiftConfigNamespace       = "openshift-config"
 	secretName                     = "azure-file-credentials"
+	tokenFileKey                   = "azure_federated_token_file"
 	ccmOperatorImageEnvName        = "CLUSTER_CLOUD_CONTROLLER_MANAGER_OPERATOR_IMAGE"
 	trustedCAConfigMap             = "azure-file-csi-driver-trusted-ca-bundle"
 	resync                         = 20 * time.Minute
@@ -92,18 +95,9 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		return fmt.Errorf("timed out waiting for FeatureGate detection")
 	}
 
-	featureGates, err := featureGateAccessor.CurrentFeatureGates()
-	if err != nil {
-		return err
-	}
-
-	deploymentAsset := &assetWithReplacement{}
-	if featureGates.Enabled(configv1.FeatureGateAzureWorkloadIdentity) {
-		deploymentAsset.Replace("${ENABLE_AZURE_WORKLOAD_IDENTITY}", "true")
-	} else {
-		deploymentAsset.Replace("${ENABLE_AZURE_WORKLOAD_IDENTITY}", "false")
-	}
-	deploymentAsset.Replace("${CLUSTER_CLOUD_CONTROLLER_MANAGER_OPERATOR_IMAGE}", os.Getenv(ccmOperatorImageEnvName))
+	replacedAssets := &assetWithReplacement{}
+	replacedAssets.Replace("${CLUSTER_CLOUD_CONTROLLER_MANAGER_OPERATOR_IMAGE}", os.Getenv(ccmOperatorImageEnvName))
+	replaceWorkloadIdentityConfig(replacedAssets, featureGateAccessor, kubeClient)
 
 	csiControllerSet := csicontrollerset.NewCSIControllerSet(
 		operatorClient,
@@ -145,7 +139,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		configInformers,
 	).WithCSIDriverControllerService(
 		"AzureFileDriverControllerServiceController",
-		deploymentAsset.GetAssetFunc(),
+		replacedAssets.GetAssetFunc(),
 		"controller.yaml",
 		kubeClient,
 		kubeInformersForNamespaces.InformersFor(defaultNamespace),
@@ -165,7 +159,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		csidrivercontrollerservicecontroller.WithSecretHashAnnotationHook(defaultNamespace, secretName, secretInformer),
 	).WithCSIDriverNodeService(
 		"AzureFileDriverNodeServiceController",
-		deploymentAsset.GetAssetFunc(),
+		replacedAssets.GetAssetFunc(),
 		"node.yaml",
 		kubeClient,
 		kubeInformersForNamespaces.InformersFor(defaultNamespace),
@@ -228,4 +222,36 @@ func (r *assetWithReplacement) GetAssetFunc() func(name string) ([]byte, error) 
 
 		return []byte(asset), nil
 	}
+}
+
+func replaceWorkloadIdentityConfig(assets *assetWithReplacement, fg featuregates.FeatureGateAccess, kubeClient *kubeclient.Clientset) error {
+	featureGates, err := fg.CurrentFeatureGates()
+	if err != nil {
+		return err
+	}
+	wiEnabled, err := isWorkloadIdentityEnabled(featureGates, kubeClient)
+	if err != nil {
+		return err
+	}
+	if wiEnabled {
+		assets.Replace("${ENABLE_AZURE_WORKLOAD_IDENTITY}", "true")
+	} else {
+		assets.Replace("${ENABLE_AZURE_WORKLOAD_IDENTITY}", "false")
+	}
+	return nil
+}
+
+func isWorkloadIdentityEnabled(featureGates featuregates.FeatureGate, kubeClient *kubeclient.Clientset) (bool, error) {
+	if !featureGates.Enabled(configv1.FeatureGateAzureWorkloadIdentity) {
+		return false, nil
+	}
+	secret, err := kubeClient.CoreV1().Secrets(defaultNamespace).Get(context.Background(), secretName, metav1.GetOptions{})
+	if err != nil {
+		return false, fmt.Errorf("could not get secret %s/%s: %v", defaultNamespace, secretName, err)
+	}
+	_, hasKey := secret.Data[tokenFileKey]
+	if !hasKey {
+		klog.Warningf("Workloads Identity feature will be disabled: feature gate is enabled, but secret %s/%s doesn't have the %q key.", defaultNamespace, secretName, tokenFileKey)
+	}
+	return hasKey, nil
 }
