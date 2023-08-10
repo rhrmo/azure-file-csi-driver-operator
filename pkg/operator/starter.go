@@ -37,7 +37,8 @@ const (
 	operatorName                   = "azure-file-csi-driver-operator"
 	operandName                    = "azure-file-csi-driver"
 	openShiftConfigNamespace       = "openshift-config"
-	secretName                     = "azure-file-credentials"
+	cloudCredSecretName            = "azure-file-credentials"
+	metricsCertSecretName          = "azure-file-csi-driver-controller-metrics-serving-cert"
 	tokenFileKey                   = "azure_federated_token_file"
 	ccmOperatorImageEnvName        = "CLUSTER_CLOUD_CONTROLLER_MANAGER_OPERATOR_IMAGE"
 	trustedCAConfigMap             = "azure-file-csi-driver-trusted-ca-bundle"
@@ -156,7 +157,8 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 			configMapInformer,
 		),
 		csidrivercontrollerservicecontroller.WithReplicasHook(nodeInformer.Lister()),
-		csidrivercontrollerservicecontroller.WithSecretHashAnnotationHook(defaultNamespace, secretName, secretInformer),
+		csidrivercontrollerservicecontroller.WithSecretHashAnnotationHook(defaultNamespace, cloudCredSecretName, secretInformer),
+		csidrivercontrollerservicecontroller.WithSecretHashAnnotationHook(defaultNamespace, metricsCertSecretName, secretInformer),
 	).WithCSIDriverNodeService(
 		"AzureFileDriverNodeServiceController",
 		replacedAssets.GetAssetFunc(),
@@ -173,7 +175,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 			trustedCAConfigMap,
 			configMapInformer,
 		),
-		csidrivernodeservicecontroller.WithSecretHashAnnotationHook(defaultNamespace, secretName, secretInformer),
+		csidrivernodeservicecontroller.WithSecretHashAnnotationHook(defaultNamespace, cloudCredSecretName, secretInformer),
 	).WithServiceMonitorController(
 		"AzureFileServiceMonitorController",
 		dynamicClient,
@@ -245,13 +247,13 @@ func isWorkloadIdentityEnabled(featureGates featuregates.FeatureGate, kubeClient
 	if !featureGates.Enabled(configv1.FeatureGateAzureWorkloadIdentity) {
 		return false, nil
 	}
-	secret, err := kubeClient.CoreV1().Secrets(defaultNamespace).Get(context.Background(), secretName, metav1.GetOptions{})
+	secret, err := kubeClient.CoreV1().Secrets(defaultNamespace).Get(context.Background(), cloudCredSecretName, metav1.GetOptions{})
 	if err != nil {
-		return false, fmt.Errorf("could not get secret %s/%s: %v", defaultNamespace, secretName, err)
+		return false, fmt.Errorf("could not get secret %s/%s: %v", defaultNamespace, cloudCredSecretName, err)
 	}
 	_, hasKey := secret.Data[tokenFileKey]
 	if !hasKey {
-		klog.Warningf("Workloads Identity feature will be disabled: feature gate is enabled, but secret %s/%s doesn't have the %q key.", defaultNamespace, secretName, tokenFileKey)
+		klog.Warningf("Workloads Identity feature will be disabled: feature gate is enabled, but secret %s/%s doesn't have the %q key.", defaultNamespace, cloudCredSecretName, tokenFileKey)
 	}
 	return hasKey, nil
 }
