@@ -1,3 +1,9 @@
+> [!warning]
+> **This repo is obsolete in OCP 4.16.**
+> Azure File CSI driver operator in 4.16 and newer is built from https://github.com/openshift/csi-operator.
+> 4.15 and older branches in this repo are still in use, until EOL of the corresponding OCP version.
+> See [this enhancement](https://github.com/openshift/enhancements/blob/master/enhancements/storage/csi-driver-operator-merge.md) for details.
+
 # azure-file-csi-driver-operator
 
 An operator to deploy the [Azure File CSI Driver](https://github.com/openshift/azure-file-csi-driver) in OKD.
